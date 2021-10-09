@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Misc Monitor</title>
+  <script src="https://cdn.bootcss.com/jquery/3.0.0/jquery.min.js"></script>
+  <script type="text/javascript" src="https://assets.pyecharts.org/assets/echarts.min.js"></script>
+  <!-- CSS goes in the document HEAD or added to your external stylesheet -->
+  <style type="text/css">
+  table {
+  	font-family: verdana,arial,sans-serif;
+  	font-size:11px;
+  	color:#333333;
+  	border-width: 1px;
+  	border-color: #666666;
+  	border-collapse: collapse;
+  }
+  table th {
+  	border-width: 1px;
+  	padding: 8px;
+  	border-style: solid;
+  	border-color: #666666;
+  	background-color: #dedede;
+  }
+  table td {
+    min-width: 100px;
+  	border-width: 1px;
+  	padding: 8px;
+  	border-style: solid;
+  	border-color: #666666;
+  	background-color: #ffffff;
+  }
+  </style>
+</head>
+<body>
+  <div id="line" style="width:1000px; height:600px;"></div>
+
+  <table border="1">
+    <tr>
+      <th>flags</th>
+      <td id="flags"></td>
+    </tr>
+    <tr>
+      <th>on seconds</th>
+      <td id="on_seconds">        </td>
+    </tr>
+    <tr>
+      <th>max p in</th>
+      <td id="max_p_in">        </td>
+    </tr>
+    <tr>
+      <th>max i in</th>
+      <td id="max_i_in">        </td>
+    </tr>
+    <tr>
+      <th>max i out</th>
+      <td id="max_i_out">        </td>
+    </tr>
+    <tr>
+      <th>fan target</th>
+      <td id="fan_target">        </td>
+    </tr>
+  </table>
+
+  <script>
+    var chart = echarts.init(document.getElementById('line'), 'white', {renderer: 'canvas'});
+    var flags = document.getElementById("flags")
+    var on_seconds = document.getElementById("on_seconds")
+    var max_p_in = document.getElementById("max_p_in")
+    var max_i_in = document.getElementById("max_i_in")
+    var max_i_out = document.getElementById("max_i_out")
+    var fan_target = document.getElementById("fan_target")
+    $(
+      function () {
+        fetchData(chart);
+        setInterval(getDynamicData, 2000);
+      }
+    );
+    function fetchData() {
+      $.ajax({
+        type: "GET",
+        url: "./api/miscChart",
+        dataType: "json",
+        success: function (result) {
+          chart.setOption(result);
+        }
+      });
+    }
+    function getDynamicData() {
+      $.ajax({
+        type: "GET",
+        url: "./api/miscDynamicData",
+        dataType: "json",
+        success: function (result) {
+          chart.setOption({
+            series: [{data: result.p_in}, {data: result.p_out}, {data: result.t_intake}, {data: result.t_internal}, {data: result.fan_speed}]
+          });
+          flags.innerHTML = result.flags
+          on_seconds.innerHTML = result.on_seconds
+          max_p_in.innerHTML = result.max_p_in
+          max_i_in.innerHTML = result.max_i_in
+          max_i_out.innerHTML = result.max_i_out
+          fan_target.innerHTML = result.fan_target
+        }
+      });
+    }
+  </script>
+</body>
+</html>
